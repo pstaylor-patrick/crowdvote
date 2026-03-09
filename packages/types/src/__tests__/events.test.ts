@@ -8,9 +8,10 @@ describe("SSEEvent types", () => {
       "session.status",
       "question.advanced",
       "vote.received",
+      "voting.closed",
       "results.revealed",
     ];
-    expect(eventTypes).toHaveLength(4);
+    expect(eventTypes).toHaveLength(5);
   });
 
   it("satisfies SSEEvent union", () => {

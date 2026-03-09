@@ -6,14 +6,18 @@ import { computeResults, type ResultItem } from "@/lib/results";
 interface ResultsChartProps {
   results: ResultItem[];
   large?: boolean;
+  maxVisible?: number;
 }
 
-export function ResultsChart({ results, large }: ResultsChartProps) {
+export function ResultsChart({ results, large, maxVisible }: ResultsChartProps) {
   const computed = computeResults(results);
+  const visible = maxVisible ? computed.slice(0, maxVisible) : computed;
+  const hiddenCount = computed.length - visible.length;
+  const hiddenVotes = computed.slice(visible.length).reduce((sum, r) => sum + r.count, 0);
 
   return (
     <div className="space-y-3 w-full">
-      {computed.map((result, i) => {
+      {visible.map((result, i) => {
         const { percentage: pct, widthPct, isWinner } = result;
 
         return (
@@ -44,6 +48,12 @@ export function ResultsChart({ results, large }: ResultsChartProps) {
           </div>
         );
       })}
+      {hiddenCount > 0 && (
+        <p className={`${large ? "text-lg" : "text-sm"} text-muted-foreground text-center pt-2`}>
+          and {hiddenCount} other{hiddenCount !== 1 ? "s" : ""} with {hiddenVotes} vote
+          {hiddenVotes !== 1 ? "s" : ""}
+        </p>
+      )}
     </div>
   );
 }

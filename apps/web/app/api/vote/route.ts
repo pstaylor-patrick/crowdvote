@@ -4,6 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { votes, questions } from "@/lib/db/schema";
 import { publishEvent } from "@/lib/sse";
+import { getRedis } from "@/lib/redis";
 import { cookies } from "next/headers";
 
 function getOrCreateVoterId(cookieStore: Awaited<ReturnType<typeof cookies>>): string {
@@ -25,6 +26,11 @@ export async function POST(req: NextRequest) {
 
   if (!question.length) {
     return NextResponse.json({ error: "Question not found" }, { status: 404 });
+  }
+
+  const isClosed = await getRedis().exists(`voting:closed:${questionId}`);
+  if (isClosed) {
+    return NextResponse.json({ error: "Voting is closed" }, { status: 403 });
   }
 
   const cookieStore = await cookies();

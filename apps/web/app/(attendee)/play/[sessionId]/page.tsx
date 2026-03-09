@@ -26,6 +26,7 @@ export default function PlayPage() {
   const [voted, setVoted] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
+  const [votingClosed, setVotingClosed] = useState(false);
 
   const { lastEvent } = useSSE(sessionId);
 
@@ -73,6 +74,10 @@ export default function PlayPage() {
         });
         setVoted(null);
         setResults(null);
+        setVotingClosed(false);
+        break;
+      case "voting.closed":
+        setVotingClosed(true);
         break;
       case "results.revealed":
         setResults(lastEvent.data.results);
@@ -167,10 +172,10 @@ export default function PlayPage() {
           )}
 
           {/* Voting UI */}
-          {!results && !voted && sessionType === "roast" && (
+          {!results && !voted && !votingClosed && sessionType === "roast" && (
             <RoastVoter options={question.options} onVote={submitVote} disabled={submitting} />
           )}
-          {!results && !voted && sessionType !== "roast" && (
+          {!results && !voted && !votingClosed && sessionType !== "roast" && (
             <div className="grid grid-cols-2 gap-3 flex-1 content-start">
               {question.options.map((option) => (
                 <Button
@@ -185,6 +190,18 @@ export default function PlayPage() {
                 </Button>
               ))}
             </div>
+          )}
+
+          {/* Voting closed — didn't vote in time */}
+          {!results && !voted && votingClosed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex-1 flex flex-col items-center justify-center gap-3"
+            >
+              <p className="text-lg font-medium text-muted-foreground">Voting closed</p>
+              <p className="text-sm text-muted-foreground">Waiting for results...</p>
+            </motion.div>
           )}
 
           {/* Voted confirmation */}

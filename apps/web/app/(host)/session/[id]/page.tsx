@@ -30,6 +30,7 @@ export default function SessionControlPage() {
   const [loading, setLoading] = useState(true);
   const [voteCount, setVoteCount] = useState(0);
   const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
+  const [votingClosed, setVotingClosed] = useState(false);
 
   const { lastEvent } = useSSE(id);
 
@@ -55,9 +56,13 @@ export default function SessionControlPage() {
       case "results.revealed":
         setResults(lastEvent.data.results);
         break;
+      case "voting.closed":
+        setVotingClosed(true);
+        break;
       case "question.advanced":
         setVoteCount(0);
         setResults(null);
+        setVotingClosed(false);
         fetchSession();
         break;
       case "session.status":
@@ -110,7 +115,12 @@ export default function SessionControlPage() {
           )}
           {session.status === "active" && (
             <>
-              {!results && <Button onClick={() => doAction("reveal")}>Reveal Results</Button>}
+              {!results && !votingClosed && (
+                <Button onClick={() => doAction("close-voting")}>Close Voting</Button>
+              )}
+              {!results && votingClosed && (
+                <Button onClick={() => doAction("reveal")}>Reveal Results</Button>
+              )}
               {results && !isLastQuestion && (
                 <Button onClick={() => doAction("advance")}>Next Question</Button>
               )}

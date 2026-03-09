@@ -2,6 +2,7 @@ export type SSEEventType =
   | "session.status"
   | "question.advanced"
   | "vote.received"
+  | "voting.closed"
   | "results.revealed";
 
 export interface SessionStatusEvent {
@@ -27,6 +28,13 @@ export interface VoteReceivedEvent {
   };
 }
 
+export interface VotingClosedEvent {
+  type: "voting.closed";
+  data: {
+    questionId: string;
+  };
+}
+
 export interface ResultsRevealedEvent {
   type: "results.revealed";
   data: {
@@ -39,4 +47,5 @@ export type SSEEvent =
   | SessionStatusEvent
   | QuestionAdvancedEvent
   | VoteReceivedEvent
+  | VotingClosedEvent
   | ResultsRevealedEvent;

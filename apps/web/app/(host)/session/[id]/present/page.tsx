@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useSSE } from "@/hooks/use-sse";
 import { ResultsChart } from "@/components/shared/results-chart";
+import { PresenterControls } from "@/components/shared/presenter-controls";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Question {
@@ -18,6 +19,7 @@ interface SessionData {
   id: string;
   title: string;
   code: string;
+  type: string;
   status: string;
   currentQuestionIndex: number;
   questions: Question[];
@@ -28,6 +30,7 @@ export default function PresentationPage() {
   const [session, setSession] = useState<SessionData | null>(null);
   const [voteCount, setVoteCount] = useState(0);
   const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
+  const [votingClosed, setVotingClosed] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<{
     prompt: string;
     options: string[];
@@ -61,9 +64,13 @@ export default function PresentationPage() {
         });
         setVoteCount(0);
         setResults(null);
+        setVotingClosed(false);
         break;
       case "vote.received":
         setVoteCount(lastEvent.data.totalVotes);
+        break;
+      case "voting.closed":
+        setVotingClosed(true);
         break;
       case "results.revealed":
         setResults(lastEvent.data.results);
@@ -82,6 +89,16 @@ export default function PresentationPage() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
   const joinUrl = `${appUrl}/join/${session.code}`;
   const totalQuestions = session.questions.length;
+  const isRoast = session.type === "roast";
+
+  const controlsProps = {
+    sessionId: id,
+    sessionStatus: session.status,
+    currentQuestionIndex: session.currentQuestionIndex,
+    totalQuestions,
+    hasResults: !!results,
+    votingClosed,
+  };
 
   // Lobby view — QR code prominently
   if (session.status === "draft" || session.status === "lobby") {
@@ -105,6 +122,8 @@ export default function PresentationPage() {
         <div className="absolute top-4 right-4 text-sm text-gray-500">
           {isConnected ? "Connected" : "Reconnecting..."}
         </div>
+
+        <PresenterControls {...controlsProps} />
       </div>
     );
   }
@@ -132,7 +151,8 @@ export default function PresentationPage() {
       </div>
 
       <AnimatePresence mode="wait">
-        {currentQuestion && !results && (
+        {/* Voting open — question + live vote count */}
+        {currentQuestion && !results && !votingClosed && (
           <motion.div
             key={`q-${currentQuestion.questionIndex}`}
             initial={{ opacity: 0, y: 20 }}
@@ -155,21 +175,57 @@ export default function PresentationPage() {
           </motion.div>
         )}
 
+        {/* Voting closed — curtain covering results */}
+        {currentQuestion && votingClosed && !results && (
+          <motion.div
+            key={`locked-${currentQuestion.questionIndex}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full max-w-3xl space-y-6 text-center"
+          >
+            <p className="text-lg text-gray-400">
+              Question {currentQuestion.questionIndex + 1} of {totalQuestions}
+            </p>
+            <h2 className="text-4xl font-bold">{currentQuestion.prompt}</h2>
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="inline-flex items-center gap-3 bg-red-600/90 px-6 py-3 rounded-xl"
+            >
+              <span className="text-2xl font-bold tracking-wider">VOTES LOCKED</span>
+              <span className="text-xl font-mono">{voteCount}</span>
+            </motion.div>
+            {/* Curtain */}
+            <motion.div
+              className="w-full h-64 rounded-2xl bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-700 flex items-center justify-center"
+              initial={{ opacity: 0, scaleY: 0.8 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+            >
+              <p className="text-2xl text-gray-500 font-medium">Results behind the curtain...</p>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Results revealed */}
         {currentQuestion && results && (
           <motion.div
             key={`r-${currentQuestion.questionIndex}`}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scaleY: 0.8 }}
+            animate={{ opacity: 1, scaleY: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="w-full max-w-3xl space-y-6"
           >
             <p className="text-lg text-gray-400 text-center">
               Question {currentQuestion.questionIndex + 1} of {totalQuestions}
             </p>
             <h2 className="text-3xl font-bold text-center">{currentQuestion.prompt}</h2>
-            <ResultsChart results={results} large />
+            <ResultsChart results={results} large maxVisible={isRoast ? 10 : undefined} />
           </motion.div>
         )}
       </AnimatePresence>
+
+      <PresenterControls {...controlsProps} />
     </div>
   );
 }
