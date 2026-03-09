@@ -1,0 +1,9 @@
+node_modules/
+.next/
+dist/
+crowdvote.data/
+.env.local
+.env
+*.tsbuildinfo
+.turbo/
+.vercel/

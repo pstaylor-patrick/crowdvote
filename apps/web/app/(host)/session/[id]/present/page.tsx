@@ -1,0 +1,187 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
+import { useSSE } from "@/hooks/use-sse";
+import { ResultsChart } from "@/components/shared/results-chart";
+import { motion, AnimatePresence } from "framer-motion";
+import type { SSEEvent } from "@crowdvote/types";
+
+interface Question {
+  id: string;
+  prompt: string;
+  options: string[];
+  orderIndex: number;
+}
+
+interface SessionData {
+  id: string;
+  title: string;
+  code: string;
+  status: string;
+  currentQuestionIndex: number;
+  questions: Question[];
+}
+
+export default function PresentationPage() {
+  const { id } = useParams<{ id: string }>();
+  const [session, setSession] = useState<SessionData | null>(null);
+  const [voteCount, setVoteCount] = useState(0);
+  const [results, setResults] = useState<
+    { value: string; count: number }[] | null
+  >(null);
+  const [currentQuestion, setCurrentQuestion] = useState<{
+    prompt: string;
+    options: string[];
+    questionId: string;
+    questionIndex: number;
+  } | null>(null);
+
+  const { lastEvent, isConnected } = useSSE(id);
+
+  const fetchSession = useCallback(async () => {
+    const res = await fetch(`/api/sessions/${id}`);
+    if (res.ok) setSession(await res.json());
+  }, [id]);
+
+  useEffect(() => {
+    fetchSession();
+  }, [fetchSession]);
+
+  useEffect(() => {
+    if (!lastEvent) return;
+    const event = lastEvent as SSEEvent;
+    switch (event.type) {
+      case "session.status":
+        fetchSession();
+        break;
+      case "question.advanced":
+        setCurrentQuestion({
+          prompt: event.data.prompt,
+          options: event.data.options,
+          questionId: event.data.questionId,
+          questionIndex: event.data.questionIndex,
+        });
+        setVoteCount(0);
+        setResults(null);
+        break;
+      case "vote.received":
+        setVoteCount(event.data.totalVotes);
+        break;
+      case "results.revealed":
+        setResults(event.data.results);
+        break;
+    }
+  }, [lastEvent, fetchSession]);
+
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <p className="text-2xl">Loading...</p>
+      </div>
+    );
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+  const joinUrl = `${appUrl}/join/${session.code}`;
+  const totalQuestions = session.questions.length;
+
+  // Lobby view — QR code prominently
+  if (session.status === "draft" || session.status === "lobby") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-8 gap-8">
+        <h1 className="text-5xl font-bold">{session.title}</h1>
+
+        <div className="bg-white p-6 rounded-2xl">
+          <QRCodeSVG value={joinUrl} size={300} level="H" />
+        </div>
+
+        <div className="text-center space-y-2">
+          <p className="text-2xl font-mono">{joinUrl}</p>
+          <p className="text-4xl font-bold font-mono tracking-widest">
+            {session.code}
+          </p>
+        </div>
+
+        <p className="text-xl text-gray-400">
+          {session.status === "draft"
+            ? "Session not started yet"
+            : "Scan QR code to join!"}
+        </p>
+
+        <div className="absolute top-4 right-4 text-sm text-gray-500">
+          {isConnected ? "Connected" : "Reconnecting..."}
+        </div>
+      </div>
+    );
+  }
+
+  // Finished
+  if (session.status === "finished") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-8 gap-6">
+        <h1 className="text-5xl font-bold">Thanks for playing!</h1>
+        <p className="text-2xl text-gray-400">{session.title}</p>
+      </div>
+    );
+  }
+
+  // Active — show question + results
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-8 gap-8">
+      {/* Small QR in corner for late joiners */}
+      <div className="absolute top-4 left-4 bg-white p-2 rounded-lg opacity-80">
+        <QRCodeSVG value={joinUrl} size={80} level="M" />
+      </div>
+
+      <div className="absolute top-4 right-4 text-sm text-gray-500">
+        {isConnected ? "Connected" : "Reconnecting..."}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {currentQuestion && !results && (
+          <motion.div
+            key={`q-${currentQuestion.questionIndex}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="text-center space-y-6 max-w-4xl"
+          >
+            <p className="text-lg text-gray-400">
+              Question {currentQuestion.questionIndex + 1} of {totalQuestions}
+            </p>
+            <h2 className="text-5xl font-bold leading-tight">
+              {currentQuestion.prompt}
+            </h2>
+            <motion.p
+              key={voteCount}
+              initial={{ scale: 1.2 }}
+              animate={{ scale: 1 }}
+              className="text-3xl text-primary font-mono"
+            >
+              {voteCount} vote{voteCount !== 1 ? "s" : ""}
+            </motion.p>
+          </motion.div>
+        )}
+
+        {currentQuestion && results && (
+          <motion.div
+            key={`r-${currentQuestion.questionIndex}`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-3xl space-y-6"
+          >
+            <p className="text-lg text-gray-400 text-center">
+              Question {currentQuestion.questionIndex + 1} of {totalQuestions}
+            </p>
+            <h2 className="text-3xl font-bold text-center">
+              {currentQuestion.prompt}
+            </h2>
+            <ResultsChart results={results} large />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

@@ -1,0 +1,21 @@
+{
+  "name": "crowdvote",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "db:generate": "npm run -w apps/web db:generate",
+    "db:migrate": "npm run -w apps/web db:migrate",
+    "db:push": "npm run -w apps/web db:push",
+    "db:studio": "npm run -w apps/web db:studio"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0"
+  },
+  "packageManager": "npm@10.8.0"
+}
