@@ -1,4 +1,4 @@
-import { Megaphone } from "@phosphor-icons/react/dist/ssr";
+import { CheckSquare } from "@phosphor-icons/react/dist/ssr";
 
 export default function HostLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,7 +8,7 @@ export default function HostLayout({ children }: { children: React.ReactNode }) 
           href="/dashboard"
           className="inline-flex items-center gap-2 text-xl font-bold text-primary"
         >
-          <Megaphone size={24} weight="fill" />
+          <CheckSquare size={24} weight="fill" />
           CrowdVote
         </a>
       </header>

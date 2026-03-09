@@ -4,15 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
-import {
-  Hash,
-  ListNumbers,
-  Calendar,
-  Plus,
-  Megaphone,
-  FolderOpen,
-  CircleNotch,
-} from "@phosphor-icons/react";
+import { Plus, CircleNotch } from "@phosphor-icons/react";
 
 interface Session {
   id: string;
@@ -37,10 +29,7 @@ export default function DashboardPage() {
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold inline-flex items-center gap-2">
-          <Megaphone size={28} weight="fill" />
-          Sessions
-        </h1>
+        <h1 className="text-3xl font-bold">Sessions</h1>
         <Button asChild>
           <a href="/session/new" className="inline-flex items-center gap-2">
             <Plus size={18} weight="bold" />
@@ -54,18 +43,15 @@ export default function DashboardPage() {
           <CircleNotch size={32} className="animate-spin text-muted-foreground" />
         </div>
       ) : sessions.length === 0 ? (
-        <Card>
-          <CardContent className="p-16 text-center space-y-4">
-            <FolderOpen size={48} className="mx-auto text-muted-foreground/50 animate-pulse" />
-            <p className="text-muted-foreground">No sessions yet</p>
-            <Button asChild>
-              <a href="/session/new" className="inline-flex items-center gap-2">
-                <Plus size={18} weight="bold" />
-                Create your first session
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="py-20 text-center space-y-4">
+          <p className="text-muted-foreground">No sessions yet</p>
+          <Button asChild>
+            <a href="/session/new" className="inline-flex items-center gap-2">
+              <Plus size={18} weight="bold" />
+              Create your first session
+            </a>
+          </Button>
+        </div>
       ) : (
         <div className="grid gap-4">
           {sessions.map((s) => (
@@ -76,20 +62,9 @@ export default function DashboardPage() {
                   <StatusBadge status={s.status} />
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <Hash size={14} />
-                      {s.code}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <ListNumbers size={14} />
-                      {s.type}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar size={14} />
-                      {new Date(s.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {s.code} &middot; {s.type} &middot; {new Date(s.createdAt).toLocaleDateString()}
+                  </p>
                 </CardContent>
               </Card>
             </a>
