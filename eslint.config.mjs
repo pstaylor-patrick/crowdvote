@@ -14,6 +14,7 @@ export default tseslint.config(
       "**/.turbo/",
       "**/*.js",
       "**/*.mjs",
+      "!eslint.config.mjs",
       "**/*.d.ts",
       "**/vitest.config.ts",
     ],
@@ -47,6 +48,12 @@ export default tseslint.config(
       ],
     },
   },
+  // Global plugin registration so Next.js detects @next/next
+  {
+    plugins: {
+      "@next/next": nextPlugin,
+    },
+  },
   {
     files: ["apps/web/**/*.{ts,tsx}"],
     languageOptions: {
@@ -56,7 +63,6 @@ export default tseslint.config(
     },
     plugins: {
       "react-hooks": reactHooks,
-      "@next/next": nextPlugin,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
