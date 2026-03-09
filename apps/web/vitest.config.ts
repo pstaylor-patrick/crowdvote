@@ -7,7 +7,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["lib/**/*.ts"],
-      exclude: ["**/*.test.ts", "lib/db/**", "lib/redis.ts"],
+      exclude: ["**/*.test.ts", "lib/redis.ts"],
       thresholds: {
         statements: 70,
         branches: 70,

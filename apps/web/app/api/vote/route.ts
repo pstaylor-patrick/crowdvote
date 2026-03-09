@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createId } from "@paralleldrive/cuid2";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { votes, questions } from "@/lib/db/schema";
+import { votes, questions, sessions } from "@/lib/db/schema";
 import { publishEvent } from "@/lib/sse";
 import { getRedis } from "@/lib/redis";
 import { cookies } from "next/headers";
+import { getEliminatedWinners } from "@/lib/eliminated-winners";
 
 function getOrCreateVoterId(cookieStore: Awaited<ReturnType<typeof cookies>>): string {
   const existing = cookieStore.get("voter_id");
@@ -26,6 +27,22 @@ export async function POST(req: NextRequest) {
 
   if (!question.length) {
     return NextResponse.json({ error: "Question not found" }, { status: 404 });
+  }
+
+  // Reject votes for eliminated candidates in roast sessions
+  const q = question[0]!;
+  const session = await db
+    .select({ type: sessions.type })
+    .from(sessions)
+    .where(eq(sessions.id, q.sessionId));
+  if (session.length && session[0]!.type === "roast") {
+    const eliminated = await getEliminatedWinners(q.sessionId, q.orderIndex);
+    if (eliminated.has(value)) {
+      return NextResponse.json(
+        { error: "This candidate has already been eliminated" },
+        { status: 400 }
+      );
+    }
   }
 
   const isClosed = await getRedis().exists(`voting:closed:${questionId}`);
@@ -61,7 +78,7 @@ export async function POST(req: NextRequest) {
 
   const totalVotes = countResult[0]?.count ?? 0;
 
-  await publishEvent(question[0]!.sessionId, {
+  await publishEvent(q.sessionId, {
     type: "vote.received",
     data: { questionId, totalVotes },
   });

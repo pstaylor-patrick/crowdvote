@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sessions, questions } from "@/lib/db/schema";
 import { publishEvent } from "@/lib/sse";
+import { getEliminatedWinners } from "@/lib/eliminated-winners";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,6 +28,13 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   const nextQuestion = allQuestions[nextIndex]!;
 
+  // For roast sessions, filter out previous winners from options
+  let filteredOptions = nextQuestion.options;
+  if (s.type === "roast") {
+    const eliminated = await getEliminatedWinners(id, nextQuestion.orderIndex);
+    filteredOptions = nextQuestion.options.filter((o: string) => !eliminated.has(o));
+  }
+
   await db
     .update(sessions)
     .set({
@@ -42,9 +50,12 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       questionIndex: nextIndex,
       questionId: nextQuestion.id,
       prompt: nextQuestion.prompt,
-      options: nextQuestion.options,
+      options: filteredOptions,
     },
   });
 
-  return NextResponse.json({ questionIndex: nextIndex, question: nextQuestion });
+  return NextResponse.json({
+    questionIndex: nextIndex,
+    question: { ...nextQuestion, options: filteredOptions },
+  });
 }
