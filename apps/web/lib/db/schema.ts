@@ -1,4 +1,5 @@
-import { pgTable, text, integer, jsonb, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, jsonb, timestamp, unique, index } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
@@ -12,17 +13,29 @@ export const sessions = pgTable("sessions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const questions = pgTable("questions", {
-  id: text("id").primaryKey(),
-  sessionId: text("session_id")
-    .notNull()
-    .references(() => sessions.id, { onDelete: "cascade" }),
-  orderIndex: integer("order_index").notNull(),
-  prompt: text("prompt").notNull(),
-  options: jsonb("options").notNull().$type<string[]>(),
-  timeLimitSeconds: integer("time_limit_seconds"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export const sessionsRelations = relations(sessions, ({ many }) => ({
+  questions: many(questions),
+}));
+
+export const questions = pgTable(
+  "questions",
+  {
+    id: text("id").primaryKey(),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    orderIndex: integer("order_index").notNull(),
+    prompt: text("prompt").notNull(),
+    options: jsonb("options").notNull().$type<string[]>(),
+    timeLimitSeconds: integer("time_limit_seconds"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (t) => [index("questions_session_id_order_idx").on(t.sessionId, t.orderIndex)]
+);
+
+export const questionsRelations = relations(questions, ({ one }) => ({
+  session: one(sessions, { fields: [questions.sessionId], references: [sessions.id] }),
+}));
 
 export const votes = pgTable(
   "votes",
@@ -35,5 +48,5 @@ export const votes = pgTable(
     value: text("value").notNull(),
     submittedAt: timestamp("submitted_at").defaultNow(),
   },
-  (t) => [unique().on(t.questionId, t.voterId)]
+  (t) => [unique().on(t.questionId, t.voterId), index("votes_question_id_idx").on(t.questionId)]
 );

@@ -7,6 +7,7 @@ import { useSSE } from "@/hooks/use-sse";
 import { ResultsChart } from "@/components/shared/results-chart";
 import { PresenterControls } from "@/components/shared/presenter-controls";
 import { motion, AnimatePresence } from "framer-motion";
+import { getAppUrl } from "@/lib/actions";
 
 interface Question {
   id: string;
@@ -28,6 +29,7 @@ interface SessionData {
 export default function PresentationPage() {
   const { id } = useParams<{ id: string }>();
   const [session, setSession] = useState<SessionData | null>(null);
+  const [appUrl, setAppUrl] = useState("");
   const [voteCount, setVoteCount] = useState(0);
   const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
   const [votingClosed, setVotingClosed] = useState(false);
@@ -39,6 +41,10 @@ export default function PresentationPage() {
   } | null>(null);
 
   const { lastEvent, isConnected } = useSSE(id);
+
+  useEffect(() => {
+    getAppUrl().then(setAppUrl);
+  }, []);
 
   const fetchSession = useCallback(async () => {
     const res = await fetch(`/api/sessions/${id}`);
@@ -53,7 +59,7 @@ export default function PresentationPage() {
     if (!lastEvent) return;
     switch (lastEvent.type) {
       case "session.status":
-        fetchSession();
+        setSession((prev) => (prev ? { ...prev, status: lastEvent.data.status } : prev));
         break;
       case "question.advanced":
         setCurrentQuestion({
@@ -76,7 +82,7 @@ export default function PresentationPage() {
         setResults(lastEvent.data.results);
         break;
     }
-  }, [lastEvent, fetchSession]);
+  }, [lastEvent]);
 
   if (!session) {
     return (
@@ -86,7 +92,6 @@ export default function PresentationPage() {
     );
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
   const joinUrl = `${appUrl}/join/${session.code}`;
   const totalQuestions = session.questions.length;
   const isRoast = session.type === "roast";

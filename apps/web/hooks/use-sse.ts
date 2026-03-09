@@ -13,6 +13,7 @@ export function useSSE(sessionId: string | null) {
 
     let cancelled = false;
     let reconnectTimer: ReturnType<typeof setTimeout>;
+    let retryDelay = 1000;
 
     function connect() {
       if (cancelled) return;
@@ -21,7 +22,10 @@ export function useSSE(sessionId: string | null) {
       const es = new EventSource(url);
       eventSourceRef.current = es;
 
-      es.onopen = () => setIsConnected(true);
+      es.onopen = () => {
+        setIsConnected(true);
+        retryDelay = 1000;
+      };
 
       es.onmessage = (e) => {
         try {
@@ -35,8 +39,8 @@ export function useSSE(sessionId: string | null) {
       es.onerror = () => {
         setIsConnected(false);
         es.close();
-        // Auto-reconnect after 2 seconds
-        reconnectTimer = setTimeout(connect, 2000);
+        reconnectTimer = setTimeout(connect, retryDelay);
+        retryDelay = Math.min(retryDelay * 2, 30000);
       };
     }
 

@@ -109,7 +109,7 @@ Open [http://localhost:3000](http://localhost:3000) to start creating sessions.
 ```bash
 POSTGRES_URL=            # Neon Postgres connection string
 REDIS_URL=               # Upstash Redis URL (rediss://...)
-NEXT_PUBLIC_APP_URL=     # Your domain (e.g., https://getcrowdvote.com)
+APP_URL=                 # Your domain (e.g., https://getcrowdvote.com)
 ADMIN_PASSWORD=          # Password for the host dashboard (optional, leave empty for dev)
 ```
 

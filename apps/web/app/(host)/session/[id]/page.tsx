@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSSE } from "@/hooks/use-sse";
 import { ResultsChart } from "@/components/shared/results-chart";
+import { getAppUrl } from "@/lib/actions";
 
 interface Question {
   id: string;
@@ -27,12 +28,17 @@ interface SessionData {
 export default function SessionControlPage() {
   const { id } = useParams<{ id: string }>();
   const [session, setSession] = useState<SessionData | null>(null);
+  const [appUrl, setAppUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [voteCount, setVoteCount] = useState(0);
   const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
   const [votingClosed, setVotingClosed] = useState(false);
 
   const { lastEvent } = useSSE(id);
+
+  useEffect(() => {
+    getAppUrl().then(setAppUrl);
+  }, []);
 
   const fetchSession = useCallback(async () => {
     const res = await fetch(`/api/sessions/${id}`);
@@ -66,7 +72,7 @@ export default function SessionControlPage() {
         fetchSession();
         break;
       case "session.status":
-        fetchSession();
+        setSession((prev) => (prev ? { ...prev, status: lastEvent.data.status } : prev));
         break;
     }
   }, [lastEvent, fetchSession]);
@@ -81,7 +87,6 @@ export default function SessionControlPage() {
 
   const currentQ = session.questions[session.currentQuestionIndex];
   const isLastQuestion = session.currentQuestionIndex >= session.questions.length - 1;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
   const joinUrl = `${appUrl}/join/${session.code}`;
 
   return (
