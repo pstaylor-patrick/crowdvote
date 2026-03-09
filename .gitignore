@@ -2,9 +2,12 @@ node_modules/
 .next/
 dist/
 crowdvote.data/
-.env.local
-.env
 *.tsbuildinfo
 .turbo/
 .vercel/
 seeds/
+
+# Env files (secrets)
+.env*
+!.env.example
+!.env.development
