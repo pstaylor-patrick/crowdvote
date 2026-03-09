@@ -71,28 +71,42 @@ async function seedFromConfig(config: SeedConfig) {
   );
 }
 
+function collectSeedFiles(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".ts"))
+    .map((f) => path.join(dir, f));
+}
+
 async function main() {
-  const seedDir = path.resolve(process.cwd(), "seeds");
+  const localSeedDir = path.resolve(process.cwd(), "seeds");
+  const rootSeedDir = path.resolve(process.cwd(), "../../seeds");
   const fileArg = process.argv[2];
 
   let files: string[];
 
   if (fileArg) {
-    const filePath = path.join(seedDir, `${fileArg}.ts`);
-    if (!fs.existsSync(filePath)) {
-      console.error(`Seed file not found: ${filePath}`);
+    const localPath = path.join(localSeedDir, `${fileArg}.ts`);
+    const rootPath = path.join(rootSeedDir, `${fileArg}.ts`);
+    const filePath = fs.existsSync(localPath)
+      ? localPath
+      : fs.existsSync(rootPath)
+        ? rootPath
+        : null;
+    if (!filePath) {
+      console.error(`Seed file not found: ${fileArg}.ts`);
       process.exit(1);
     }
     files = [filePath];
   } else {
-    if (!fs.existsSync(seedDir)) {
-      console.error(`Seed directory not found: ${seedDir}`);
-      process.exit(1);
-    }
-    files = fs
-      .readdirSync(seedDir)
-      .filter((f) => f.endsWith(".ts"))
-      .map((f) => path.join(seedDir, f));
+    const seen = new Set<string>();
+    files = [...collectSeedFiles(localSeedDir), ...collectSeedFiles(rootSeedDir)].filter((f) => {
+      const name = path.basename(f);
+      if (seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
   }
 
   if (files.length === 0) {
