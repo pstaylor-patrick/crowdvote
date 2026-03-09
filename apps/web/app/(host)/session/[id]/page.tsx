@@ -115,6 +115,11 @@ export default function SessionControlPage() {
           )}
           {session.status === "active" && (
             <>
+              {session.currentQuestionIndex > 0 && (
+                <Button variant="outline" onClick={() => doAction("previous")}>
+                  Previous Question
+                </Button>
+              )}
               {!results && !votingClosed && (
                 <Button onClick={() => doAction("close-voting")}>Close Voting</Button>
               )}
@@ -129,6 +134,16 @@ export default function SessionControlPage() {
                   End Session
                 </Button>
               )}
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (window.confirm("Reset to lobby? This will delete all votes.")) {
+                    doAction("reset");
+                  }
+                }}
+              >
+                Reset to Lobby
+              </Button>
             </>
           )}
         </CardContent>

@@ -12,7 +12,7 @@ interface PresenterControlsProps {
   votingClosed: boolean;
 }
 
-type ActionKey = "advance" | "close-voting" | "reveal" | "finish";
+type ActionKey = "advance" | "close-voting" | "reveal" | "finish" | "previous" | "reset";
 
 function getNextAction(
   status: string,
@@ -67,13 +67,19 @@ export function PresenterControls({
     hideTimerRef.current = setTimeout(() => setShowOverlay(false), 3000);
   }, []);
 
-  const doAction = useCallback(async () => {
-    if (!nextAction || acting) return;
-    setActing(true);
-    await fetch(`/api/sessions/${sessionId}/${nextAction.action}`, { method: "POST" });
-    setActing(false);
-    setShowOverlay(false);
-  }, [sessionId, nextAction, acting]);
+  const canGoPrevious = sessionStatus === "active" && currentQuestionIndex > 0;
+
+  const doAction = useCallback(
+    async (actionOverride?: ActionKey) => {
+      const action = actionOverride || nextAction?.action;
+      if (!action || acting) return;
+      setActing(true);
+      await fetch(`/api/sessions/${sessionId}/${action}`, { method: "POST" });
+      setActing(false);
+      setShowOverlay(false);
+    },
+    [sessionId, nextAction, acting]
+  );
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -82,6 +88,12 @@ export function PresenterControls({
 
       if (e.key === "Escape") {
         setShowOverlay((prev) => !prev);
+        return;
+      }
+
+      if (e.key === "ArrowLeft" && canGoPrevious) {
+        e.preventDefault();
+        doAction("previous");
         return;
       }
 
@@ -98,7 +110,7 @@ export function PresenterControls({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showOverlay, doAction, resetHideTimer]);
+  }, [showOverlay, doAction, resetHideTimer, canGoPrevious]);
 
   // Reset hide timer when overlay shown
   useEffect(() => {
@@ -132,23 +144,40 @@ export function PresenterControls({
             onClick={() => setShowOverlay(false)}
             onMouseMove={resetHideTimer}
           >
-            <motion.button
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                doAction();
-              }}
-              disabled={acting}
-              className={`px-12 py-6 rounded-2xl text-3xl font-bold text-white transition-colors ${
-                nextAction.action === "finish"
-                  ? "bg-red-600 hover:bg-red-500"
-                  : "bg-primary hover:bg-primary/90"
-              } disabled:opacity-50`}
-            >
-              {acting ? "..." : nextAction.label}
-            </motion.button>
+            <div className="flex flex-col items-center gap-4">
+              <motion.button
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  doAction();
+                }}
+                disabled={acting}
+                className={`px-12 py-6 rounded-2xl text-3xl font-bold text-white transition-colors ${
+                  nextAction.action === "finish"
+                    ? "bg-red-600 hover:bg-red-500"
+                    : "bg-primary hover:bg-primary/90"
+                } disabled:opacity-50`}
+              >
+                {acting ? "..." : nextAction.label}
+              </motion.button>
+              {canGoPrevious && (
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    doAction("previous");
+                  }}
+                  disabled={acting}
+                  className="px-6 py-2 rounded-xl text-sm text-white/70 hover:text-white bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
+                >
+                  ← Previous Question
+                </motion.button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
