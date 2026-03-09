@@ -11,7 +11,7 @@ if (!process.env.POSTGRES_URL) {
   process.exit(1);
 }
 
-const CODE_REGEX = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]+$/;
+const CODE_REGEX = /^[A-Z2-9]+$/;
 
 async function seedFromConfig(config: SeedConfig) {
   // Validate code

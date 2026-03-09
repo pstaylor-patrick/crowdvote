@@ -1,4 +1,4 @@
-const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789";
 
 export function generateCode(length = 5): string {
   let code = "";

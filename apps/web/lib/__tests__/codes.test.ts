@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { generateCode } from "../codes";
 
-const ALLOWED_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const ALLOWED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789";
 
 describe("generateCode", () => {
   it("generates default length of 5", () => {
@@ -13,7 +13,7 @@ describe("generateCode", () => {
     expect(generateCode(3)).toHaveLength(3);
   });
 
-  it("only contains allowed characters (no O/0/I/1)", () => {
+  it("only contains uppercase letters A-Z and digits 2-9", () => {
     for (let i = 0; i < 100; i++) {
       const code = generateCode();
       for (const ch of code) {
