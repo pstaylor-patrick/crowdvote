@@ -1,37 +1,42 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("next/headers", () => ({
+  headers: vi.fn(),
+}));
+
+import { headers } from "next/headers";
+import { getAppUrl } from "../actions";
+
+const mockHeaders = headers as unknown as ReturnType<typeof vi.fn>;
+
+function fakeHeaders(map: Record<string, string>) {
+  mockHeaders.mockResolvedValue({
+    get: (key: string) => map[key] ?? null,
+  });
+}
 
 describe("getAppUrl", () => {
-  const originalEnv = process.env.APP_URL;
-
   beforeEach(() => {
-    vi.resetModules();
+    vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    if (originalEnv !== undefined) {
-      process.env.APP_URL = originalEnv;
-    } else {
-      delete process.env.APP_URL;
-    }
-  });
-
-  it("returns APP_URL when set", async () => {
-    process.env.APP_URL = "https://crowdvote.example.com";
-    const { getAppUrl } = await import("../actions");
+  it("returns URL from x-forwarded-host and x-forwarded-proto", async () => {
+    fakeHeaders({
+      "x-forwarded-host": "abc123.ngrok-free.app",
+      "x-forwarded-proto": "https",
+    });
     const url = await getAppUrl();
-    expect(url).toBe("https://crowdvote.example.com");
+    expect(url).toBe("https://abc123.ngrok-free.app");
   });
 
-  it("falls back to localhost when APP_URL is not set", async () => {
-    delete process.env.APP_URL;
-    const { getAppUrl } = await import("../actions");
+  it("falls back to host header when x-forwarded-host is absent", async () => {
+    fakeHeaders({ host: "localhost:3000" });
     const url = await getAppUrl();
     expect(url).toBe("http://localhost:3000");
   });
 
-  it("returns empty string APP_URL as-is (falsy but defined)", async () => {
-    process.env.APP_URL = "";
-    const { getAppUrl } = await import("../actions");
+  it("falls back to defaults when no headers present", async () => {
+    fakeHeaders({});
     const url = await getAppUrl();
     expect(url).toBe("http://localhost:3000");
   });
