@@ -3,6 +3,16 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  Hash,
+  ListNumbers,
+  Calendar,
+  Plus,
+  Megaphone,
+  FolderOpen,
+  CircleNotch,
+} from "@phosphor-icons/react";
 
 interface Session {
   id: string;
@@ -24,30 +34,35 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const statusColor: Record<string, string> = {
-    draft: "bg-muted text-muted-foreground",
-    lobby: "bg-yellow-100 text-yellow-800",
-    active: "bg-green-100 text-green-800",
-    finished: "bg-muted text-muted-foreground",
-  };
-
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-8 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Sessions</h1>
+        <h1 className="text-3xl font-bold inline-flex items-center gap-2">
+          <Megaphone size={28} weight="fill" />
+          Sessions
+        </h1>
         <Button asChild>
-          <a href="/session/new">New Session</a>
+          <a href="/session/new" className="inline-flex items-center gap-2">
+            <Plus size={18} weight="bold" />
+            New Session
+          </a>
         </Button>
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">Loading...</p>
+        <div className="flex items-center justify-center py-20">
+          <CircleNotch size={32} className="animate-spin text-muted-foreground" />
+        </div>
       ) : sessions.length === 0 ? (
         <Card>
-          <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">No sessions yet</p>
+          <CardContent className="p-16 text-center space-y-4">
+            <FolderOpen size={48} className="mx-auto text-muted-foreground/50 animate-pulse" />
+            <p className="text-muted-foreground">No sessions yet</p>
             <Button asChild>
-              <a href="/session/new">Create your first session</a>
+              <a href="/session/new" className="inline-flex items-center gap-2">
+                <Plus size={18} weight="bold" />
+                Create your first session
+              </a>
             </Button>
           </CardContent>
         </Card>
@@ -55,20 +70,25 @@ export default function DashboardPage() {
         <div className="grid gap-4">
           {sessions.map((s) => (
             <a key={s.id} href={`/session/${s.id}`}>
-              <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+              <Card className="hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-lg">{s.title}</CardTitle>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${statusColor[s.status] || ""}`}
-                  >
-                    {s.status}
-                  </span>
+                  <StatusBadge status={s.status} />
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>Code: {s.code}</span>
-                    <span>Type: {s.type}</span>
-                    <span>{new Date(s.createdAt).toLocaleDateString()}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Hash size={14} />
+                      {s.code}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <ListNumbers size={14} />
+                      {s.type}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar size={14} />
+                      {new Date(s.createdAt).toLocaleDateString()}
+                    </span>
                   </div>
                 </CardContent>
               </Card>

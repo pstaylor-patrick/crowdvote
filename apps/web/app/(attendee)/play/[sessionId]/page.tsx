@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ResultsChart } from "@/components/shared/results-chart";
 import { RoastVoter } from "@/components/shared/roast-voter";
 import { motion, AnimatePresence } from "framer-motion";
+import Confetti from "react-confetti";
 
 const GITHUB_REPO = "https://github.com/pstaylor-patrick/crowdvote";
 
@@ -27,6 +28,7 @@ export default function PlayPage() {
   const [submitting, setSubmitting] = useState(false);
   const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
   const [votingClosed, setVotingClosed] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const { lastEvent } = useSSE(sessionId);
 
@@ -75,6 +77,7 @@ export default function PlayPage() {
         setVoted(null);
         setResults(null);
         setVotingClosed(false);
+        setShowConfetti(false);
         break;
       case "voting.closed":
         setVotingClosed(true);
@@ -99,6 +102,8 @@ export default function PlayPage() {
       });
       if (res.ok || res.status === 409) {
         setVoted(value);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
       }
       setSubmitting(false);
     },
@@ -140,6 +145,15 @@ export default function PlayPage() {
   // Active question
   return (
     <div className="flex-1 flex flex-col p-4 max-w-lg mx-auto w-full">
+      {showConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={200}
+          style={{ position: "fixed", top: 0, left: 0, zIndex: 100 }}
+        />
+      )}
       <AnimatePresence mode="wait">
         <motion.div
           key={question.questionIndex}

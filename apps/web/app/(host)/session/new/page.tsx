@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { buildSessionPayload, type QuestionInput } from "@/lib/session-payload";
+import { Trash, XCircle, Plus, PlusCircle, CheckCircle } from "@phosphor-icons/react";
 
 export default function NewSessionPage() {
   const router = useRouter();
@@ -74,7 +76,7 @@ export default function NewSessionPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="max-w-2xl mx-auto p-8 space-y-8">
       <h1 className="text-3xl font-bold">New Session</h1>
 
       <Card>
@@ -95,53 +97,86 @@ export default function NewSessionPage() {
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Questions</h2>
-        {questions.map((q, qIdx) => (
-          <Card key={qIdx}>
-            <CardContent className="pt-6 space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Question {qIdx + 1}</label>
-                {questions.length > 1 && (
-                  <Button variant="ghost" size="sm" onClick={() => removeQuestion(qIdx)}>
-                    Remove
-                  </Button>
-                )}
-              </div>
-              <Input
-                value={q.prompt}
-                onChange={(e) => updatePrompt(qIdx, e.target.value)}
-                placeholder="Most likely to fall asleep in a meeting"
-              />
-
-              <div className="space-y-2 pl-4">
-                <label className="text-xs text-muted-foreground">Options</label>
-                {q.options.map((opt, oIdx) => (
-                  <div key={oIdx} className="flex gap-2">
-                    <Input
-                      value={opt}
-                      onChange={(e) => updateOption(qIdx, oIdx, e.target.value)}
-                      placeholder={`Option ${oIdx + 1}`}
-                    />
-                    {q.options.length > 1 && (
-                      <Button variant="ghost" size="sm" onClick={() => removeOption(qIdx, oIdx)}>
-                        X
+        <AnimatePresence initial={false}>
+          {questions.map((q, qIdx) => (
+            <motion.div
+              key={qIdx}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card>
+                <CardContent className="pt-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                        {qIdx + 1}
+                      </span>
+                      <label className="text-sm font-medium">Question</label>
+                    </div>
+                    {questions.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeQuestion(qIdx)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash size={16} />
                       </Button>
                     )}
                   </div>
-                ))}
-                <Button variant="outline" size="sm" onClick={() => addOption(qIdx)}>
-                  + Add Option
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        <Button variant="outline" onClick={addQuestion}>
-          + Add Question
+                  <Input
+                    value={q.prompt}
+                    onChange={(e) => updatePrompt(qIdx, e.target.value)}
+                    placeholder="Most likely to fall asleep in a meeting"
+                  />
+
+                  <div className="space-y-2 pl-4">
+                    <label className="text-xs text-muted-foreground">Options</label>
+                    {q.options.map((opt, oIdx) => (
+                      <div key={oIdx} className="flex gap-2">
+                        <Input
+                          value={opt}
+                          onChange={(e) => updateOption(qIdx, oIdx, e.target.value)}
+                          placeholder={`Option ${oIdx + 1}`}
+                        />
+                        {q.options.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeOption(qIdx, oIdx)}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            <XCircle size={18} />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addOption(qIdx)}
+                      className="gap-1"
+                    >
+                      <Plus size={14} weight="bold" />
+                      Add Option
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        <Button variant="outline" onClick={addQuestion} className="gap-2">
+          <PlusCircle size={18} />
+          Add Question
         </Button>
       </div>
 
       <div className="flex gap-3">
-        <Button onClick={handleSubmit} disabled={submitting} size="lg">
+        <Button onClick={handleSubmit} disabled={submitting} size="lg" className="gap-2">
+          <CheckCircle size={20} weight="bold" />
           {submitting ? "Creating..." : "Create Session"}
         </Button>
         <Button variant="outline" size="lg" asChild>

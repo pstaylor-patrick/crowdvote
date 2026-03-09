@@ -68,6 +68,11 @@ export default function PresentationPage() {
           questionId: lastEvent.data.questionId,
           questionIndex: lastEvent.data.questionIndex,
         });
+        setSession((prev) =>
+          prev
+            ? { ...prev, status: "active", currentQuestionIndex: lastEvent.data.questionIndex }
+            : prev
+        );
         setVoteCount(0);
         setResults(null);
         setVotingClosed(false);
@@ -146,11 +151,6 @@ export default function PresentationPage() {
   // Active — show question + results
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-8 gap-8">
-      {/* Small QR in corner for late joiners */}
-      <div className="absolute top-4 left-4 bg-white p-2 rounded-lg opacity-80">
-        <QRCodeSVG value={joinUrl} size={80} level="M" />
-      </div>
-
       <div className="absolute top-4 right-4 text-sm text-gray-500">
         {isConnected ? "Connected" : "Reconnecting..."}
       </div>
