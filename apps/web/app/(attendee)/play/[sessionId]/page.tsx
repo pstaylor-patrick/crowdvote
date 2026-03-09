@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useSSE } from "@/hooks/use-sse";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { ResultsChart } from "@/components/shared/results-chart";
 import { RoastVoter } from "@/components/shared/roast-voter";
 import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "react-confetti";
+import { getFingerprint } from "@/lib/fingerprint";
 
 const GITHUB_REPO = "https://github.com/pstaylor-patrick/crowdvote";
 
@@ -29,8 +30,16 @@ export default function PlayPage() {
   const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
   const [votingClosed, setVotingClosed] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const fingerprintRef = useRef<string | null>(null);
 
   const { lastEvent } = useSSE(sessionId);
+
+  // Compute fingerprint on mount
+  useEffect(() => {
+    getFingerprint().then((fp) => {
+      fingerprintRef.current = fp;
+    });
+  }, []);
 
   // Fetch session info on mount
   useEffect(() => {
@@ -98,6 +107,7 @@ export default function PlayPage() {
         body: JSON.stringify({
           questionId: question.questionId,
           value,
+          fingerprint: fingerprintRef.current,
         }),
       });
       if (res.ok || res.status === 409) {

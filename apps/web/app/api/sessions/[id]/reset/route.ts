@@ -22,7 +22,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
     // Clear all voting:closed Redis keys
     const redis = getRedis();
-    const keys = questionIds.map((qId) => `voting:closed:${qId}`);
+    const keys = questionIds.flatMap((qId) => [`voting:closed:${qId}`, `votes:count:${qId}`]);
     await redis.del(...keys);
   }
 

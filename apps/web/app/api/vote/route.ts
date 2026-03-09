@@ -15,7 +15,7 @@ function getOrCreateVoterId(cookieStore: Awaited<ReturnType<typeof cookies>>): s
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { questionId, value } = body;
+  const { questionId, value, fingerprint } = body;
 
   if (!questionId || !value) {
     return NextResponse.json({ error: "questionId and value are required" }, { status: 400 });
@@ -41,8 +41,10 @@ export async function POST(req: NextRequest) {
       id: createId(),
       questionId,
       voterId,
+      fingerprint: fingerprint || null,
       value,
     });
+    await getRedis().incr(`votes:count:${questionId}`);
   } catch (err: unknown) {
     // Unique constraint violation = already voted
     if (err instanceof Error && err.message.includes("unique")) {

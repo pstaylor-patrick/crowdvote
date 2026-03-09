@@ -34,6 +34,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   // Clear voting:closed Redis key for that question
   const redis = getRedis();
   await redis.del(`voting:closed:${prevQuestion.id}`);
+  await redis.del(`votes:count:${prevQuestion.id}`);
 
   // Update session
   await db

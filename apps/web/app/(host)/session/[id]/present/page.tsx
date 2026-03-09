@@ -48,7 +48,19 @@ export default function PresentationPage() {
 
   const fetchSession = useCallback(async () => {
     const res = await fetch(`/api/sessions/${id}`);
-    if (res.ok) setSession(await res.json());
+    if (res.ok) {
+      const data = await res.json();
+      setSession(data);
+      if (data.status === "active" && data.questions[data.currentQuestionIndex]) {
+        const q = data.questions[data.currentQuestionIndex];
+        setCurrentQuestion({
+          prompt: q.prompt,
+          options: q.options,
+          questionId: q.id,
+          questionIndex: data.currentQuestionIndex,
+        });
+      }
+    }
   }, [id]);
 
   useEffect(() => {
@@ -88,6 +100,22 @@ export default function PresentationPage() {
         break;
     }
   }, [lastEvent]);
+
+  // Poll vote count as fallback for unreliable SSE (e.g. through ngrok)
+  useEffect(() => {
+    if (!currentQuestion || votingClosed || results) return;
+
+    const interval = setInterval(() => {
+      fetch(`/api/sessions/${id}/vote-count?questionId=${currentQuestion.questionId}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) setVoteCount((prev) => Math.max(prev, data.totalVotes));
+        })
+        .catch(() => {});
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [id, currentQuestion, votingClosed, results]);
 
   if (!session) {
     return (

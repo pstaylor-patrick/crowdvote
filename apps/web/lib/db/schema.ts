@@ -45,8 +45,13 @@ export const votes = pgTable(
       .notNull()
       .references(() => questions.id, { onDelete: "cascade" }),
     voterId: text("voter_id").notNull(),
+    fingerprint: text("fingerprint"),
     value: text("value").notNull(),
     submittedAt: timestamp("submitted_at").defaultNow(),
   },
-  (t) => [unique().on(t.questionId, t.voterId), index("votes_question_id_idx").on(t.questionId)]
+  (t) => [
+    unique().on(t.questionId, t.voterId),
+    unique().on(t.questionId, t.fingerprint),
+    index("votes_question_id_idx").on(t.questionId),
+  ]
 );
