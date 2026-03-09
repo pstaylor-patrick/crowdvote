@@ -9,6 +9,7 @@
     "format:check": "prettier --check .",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "test:coverage": "turbo test:coverage",
     "db:generate": "pnpm --filter @crowdvote/web db:generate",
     "db:migrate": "pnpm --filter @crowdvote/web db:migrate",
     "db:push": "pnpm --filter @crowdvote/web db:push",

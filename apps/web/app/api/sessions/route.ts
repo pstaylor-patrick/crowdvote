@@ -3,15 +3,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { db } from "@/lib/db";
 import { sessions, questions } from "@/lib/db/schema";
 import { desc } from "drizzle-orm";
-
-function generateCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No ambiguous chars
-  let code = "";
-  for (let i = 0; i < 5; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]!;
-  }
-  return code;
-}
+import { generateCode } from "@/lib/codes";
 
 export async function GET() {
   const allSessions = await db.select().from(sessions).orderBy(desc(sessions.createdAt));

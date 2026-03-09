@@ -6,6 +6,14 @@ export default defineConfig({
     environment: "node",
     coverage: {
       provider: "v8",
+      include: ["lib/**/*.ts"],
+      exclude: ["**/*.test.ts", "lib/db/**", "lib/redis.ts"],
+      thresholds: {
+        statements: 70,
+        branches: 70,
+        functions: 70,
+        lines: 70,
+      },
     },
   },
   resolve: {

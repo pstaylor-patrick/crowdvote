@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-
-interface QuestionInput {
-  prompt: string;
-  options: string[];
-}
+import { buildSessionPayload, type QuestionInput } from "@/lib/session-payload";
 
 export default function NewSessionPage() {
   const router = useRouter();
@@ -61,16 +57,7 @@ export default function NewSessionPage() {
     if (!title.trim()) return;
     setSubmitting(true);
 
-    const payload = {
-      title: title.trim(),
-      type: "roast",
-      questions: questions
-        .filter((q) => q.prompt.trim())
-        .map((q) => ({
-          prompt: q.prompt.trim(),
-          options: q.options.filter((o) => o.trim()),
-        })),
-    };
+    const payload = buildSessionPayload(title, questions);
 
     const res = await fetch("/api/sessions", {
       method: "POST",

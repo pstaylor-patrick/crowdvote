@@ -1,23 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { computeResults, type ResultItem } from "@/lib/results";
 
 interface ResultsChartProps {
-  results: { value: string; count: number }[];
+  results: ResultItem[];
   large?: boolean;
 }
 
 export function ResultsChart({ results, large }: ResultsChartProps) {
-  const maxCount = Math.max(...results.map((r) => r.count), 1);
-  const totalVotes = results.reduce((sum, r) => sum + r.count, 0);
-  const sorted = [...results].sort((a, b) => b.count - a.count);
+  const computed = computeResults(results);
 
   return (
     <div className="space-y-3 w-full">
-      {sorted.map((result, i) => {
-        const pct = totalVotes > 0 ? (result.count / totalVotes) * 100 : 0;
-        const widthPct = (result.count / maxCount) * 100;
-        const isWinner = i === 0 && result.count > 0;
+      {computed.map((result, i) => {
+        const { percentage: pct, widthPct, isWinner } = result;
 
         return (
           <div key={result.value} className="space-y-1">

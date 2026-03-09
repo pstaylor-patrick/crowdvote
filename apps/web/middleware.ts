@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { validateAdminToken } from "@/lib/auth";
 
 const PROTECTED_PATHS = ["/dashboard", "/session"];
 
@@ -21,13 +22,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Validate token
-  try {
-    const decoded = Buffer.from(token, "base64").toString();
-    const parts = decoded.split(":");
-    if (parts.length < 2 || parts.slice(1).join(":") !== adminPassword) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-  } catch {
+  if (!validateAdminToken(token, adminPassword)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

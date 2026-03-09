@@ -1,3 +1,4 @@
 export TURBO_UI=0
 export FORCE_COLOR=1
 pnpm exec lint-staged
+pnpm turbo test:coverage

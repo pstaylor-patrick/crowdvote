@@ -1,22 +1,17 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
 import { eq } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 import * as path from "path";
 import * as fs from "fs";
+import { db } from "../lib/db";
 import { sessions, questions } from "../lib/db/schema";
 import type { SeedConfig } from "../lib/db/seed-types";
 
-const POSTGRES_URL = process.env.POSTGRES_URL;
-if (!POSTGRES_URL) {
+if (!process.env.POSTGRES_URL) {
   console.error("Error: POSTGRES_URL is not set. Is .env.local loaded?");
   process.exit(1);
 }
 
 const CODE_REGEX = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]+$/;
-
-const sql = neon(POSTGRES_URL);
-const db = drizzle(sql);
 
 async function seedFromConfig(config: SeedConfig) {
   // Validate code
