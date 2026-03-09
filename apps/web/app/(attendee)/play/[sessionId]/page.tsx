@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useSSE } from "@/hooks/use-sse";
 import { Button } from "@/components/ui/button";
 import { ResultsChart } from "@/components/shared/results-chart";
+import { RoastVoter } from "@/components/shared/roast-voter";
 import { motion, AnimatePresence } from "framer-motion";
 
 const GITHUB_REPO = "https://github.com/pstaylor-patrick/crowdvote";
@@ -19,6 +20,7 @@ interface QuestionState {
 export default function PlayPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const [sessionTitle, setSessionTitle] = useState("");
+  const [sessionType, setSessionType] = useState<string>("poll");
   const [sessionStatus, setSessionStatus] = useState("lobby");
   const [question, setQuestion] = useState<QuestionState | null>(null);
   const [voted, setVoted] = useState<string | null>(null);
@@ -33,6 +35,7 @@ export default function PlayPage() {
       .then((r) => r.json())
       .then((data) => {
         setSessionTitle(data.title);
+        setSessionType(data.type);
         setSessionStatus(data.status);
         // If session is already active, show current question
         if (data.status === "active" && data.questions?.length) {
@@ -164,7 +167,10 @@ export default function PlayPage() {
           )}
 
           {/* Voting UI */}
-          {!results && !voted && (
+          {!results && !voted && sessionType === "roast" && (
+            <RoastVoter options={question.options} onVote={submitVote} disabled={submitting} />
+          )}
+          {!results && !voted && sessionType !== "roast" && (
             <div className="grid grid-cols-2 gap-3 flex-1 content-start">
               {question.options.map((option) => (
                 <Button

@@ -7,3 +7,4 @@ crowdvote.data/
 *.tsbuildinfo
 .turbo/
 .vercel/
+seeds/

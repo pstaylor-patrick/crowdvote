@@ -13,7 +13,9 @@
     "db:generate": "set -a && . ./.env.local && drizzle-kit generate",
     "db:migrate": "set -a && . ./.env.local && drizzle-kit migrate",
     "db:push": "set -a && . ./.env.local && drizzle-kit push",
-    "db:studio": "set -a && . ./.env.local && drizzle-kit studio"
+    "db:studio": "set -a && . ./.env.local && drizzle-kit studio",
+    "db:nuke": "set -a && . ./.env.local && npx tsx scripts/db-nuke.ts",
+    "db:seed": "set -a && . ./.env.local && npx tsx scripts/db-seed.ts"
   },
   "dependencies": {
     "@crowdvote/types": "workspace:*",

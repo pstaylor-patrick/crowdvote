@@ -13,6 +13,8 @@
     "db:migrate": "pnpm --filter @crowdvote/web db:migrate",
     "db:push": "pnpm --filter @crowdvote/web db:push",
     "db:studio": "pnpm --filter @crowdvote/web db:studio",
+    "db:nuke": "pnpm --filter @crowdvote/web db:nuke",
+    "db:seed": "pnpm --filter @crowdvote/web db:seed",
     "postinstall": "husky"
   },
   "devDependencies": {
