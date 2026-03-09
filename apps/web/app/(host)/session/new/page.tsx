@@ -16,9 +16,6 @@ export default function NewSessionPage() {
   const [title, setTitle] = useState("");
   const [questions, setQuestions] = useState<QuestionInput[]>([{ prompt: "", options: [""] }]);
   const [submitting, setSubmitting] = useState(false);
-  // Default shared options for roast mode (applied to all questions)
-  const [sharedOptions, setSharedOptions] = useState<string[]>([""]);
-  const [useSharedOptions, setUseSharedOptions] = useState(true);
 
   const addQuestion = () => {
     setQuestions([...questions, { prompt: "", options: [""] }]);
@@ -28,16 +25,6 @@ export default function NewSessionPage() {
     const updated = [...questions];
     updated[idx] = { ...updated[idx]!, prompt };
     setQuestions(updated);
-  };
-
-  const addSharedOption = () => setSharedOptions([...sharedOptions, ""]);
-  const updateSharedOption = (idx: number, val: string) => {
-    const updated = [...sharedOptions];
-    updated[idx] = val;
-    setSharedOptions(updated);
-  };
-  const removeSharedOption = (idx: number) => {
-    setSharedOptions(sharedOptions.filter((_, i) => i !== idx));
   };
 
   const addOption = (qIdx: number) => {
@@ -74,7 +61,6 @@ export default function NewSessionPage() {
     if (!title.trim()) return;
     setSubmitting(true);
 
-    const filteredShared = sharedOptions.filter((o) => o.trim());
     const payload = {
       title: title.trim(),
       type: "roast",
@@ -82,7 +68,7 @@ export default function NewSessionPage() {
         .filter((q) => q.prompt.trim())
         .map((q) => ({
           prompt: q.prompt.trim(),
-          options: useSharedOptions ? filteredShared : q.options.filter((o) => o.trim()),
+          options: q.options.filter((o) => o.trim()),
         })),
     };
 
@@ -117,44 +103,6 @@ export default function NewSessionPage() {
               placeholder="F3 Leadership Roast"
             />
           </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="shared"
-              checked={useSharedOptions}
-              onChange={(e) => setUseSharedOptions(e.target.checked)}
-              className="rounded"
-            />
-            <label htmlFor="shared" className="text-sm">
-              Use same options for all questions (roast mode)
-            </label>
-          </div>
-
-          {useSharedOptions && (
-            <div className="space-y-2 p-4 bg-muted rounded-lg">
-              <label className="text-sm font-medium">
-                People / Options (shared across all questions)
-              </label>
-              {sharedOptions.map((opt, i) => (
-                <div key={i} className="flex gap-2">
-                  <Input
-                    value={opt}
-                    onChange={(e) => updateSharedOption(i, e.target.value)}
-                    placeholder={`Person ${i + 1}`}
-                  />
-                  {sharedOptions.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeSharedOption(i)}>
-                      X
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button variant="outline" size="sm" onClick={addSharedOption}>
-                + Add Person
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -177,28 +125,26 @@ export default function NewSessionPage() {
                 placeholder="Most likely to fall asleep in a meeting"
               />
 
-              {!useSharedOptions && (
-                <div className="space-y-2 pl-4">
-                  <label className="text-xs text-muted-foreground">Options</label>
-                  {q.options.map((opt, oIdx) => (
-                    <div key={oIdx} className="flex gap-2">
-                      <Input
-                        value={opt}
-                        onChange={(e) => updateOption(qIdx, oIdx, e.target.value)}
-                        placeholder={`Option ${oIdx + 1}`}
-                      />
-                      {q.options.length > 1 && (
-                        <Button variant="ghost" size="sm" onClick={() => removeOption(qIdx, oIdx)}>
-                          X
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button variant="outline" size="sm" onClick={() => addOption(qIdx)}>
-                    + Add Option
-                  </Button>
-                </div>
-              )}
+              <div className="space-y-2 pl-4">
+                <label className="text-xs text-muted-foreground">Options</label>
+                {q.options.map((opt, oIdx) => (
+                  <div key={oIdx} className="flex gap-2">
+                    <Input
+                      value={opt}
+                      onChange={(e) => updateOption(qIdx, oIdx, e.target.value)}
+                      placeholder={`Option ${oIdx + 1}`}
+                    />
+                    {q.options.length > 1 && (
+                      <Button variant="ghost" size="sm" onClick={() => removeOption(qIdx, oIdx)}>
+                        X
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => addOption(qIdx)}>
+                  + Add Option
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
