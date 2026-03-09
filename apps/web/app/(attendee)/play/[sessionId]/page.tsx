@@ -103,7 +103,6 @@ export default function PlayPage() {
       if (res.ok || res.status === 409) {
         setVoted(value);
         setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 3000);
       }
       setSubmitting(false);
     },
@@ -151,6 +150,10 @@ export default function PlayPage() {
           height={window.innerHeight}
           recycle={false}
           numberOfPieces={200}
+          onConfettiComplete={(confetti) => {
+            confetti?.reset();
+            setShowConfetti(false);
+          }}
           style={{ position: "fixed", top: 0, left: 0, zIndex: 100 }}
         />
       )}
