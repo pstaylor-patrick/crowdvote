@@ -47,9 +47,7 @@ export default function LoginPage() {
                 placeholder="Enter admin password"
                 autoFocus
               />
-              {error && (
-                <p className="text-sm text-destructive mt-1">{error}</p>
-              )}
+              {error && <p className="text-sm text-destructive mt-1">{error}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}

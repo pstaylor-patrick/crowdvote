@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSSE } from "@/hooks/use-sse";
 import { ResultsChart } from "@/components/shared/results-chart";
-import type { SSEEvent } from "@crowdvote/types";
 
 interface Question {
   id: string;
@@ -30,9 +29,7 @@ export default function SessionControlPage() {
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [voteCount, setVoteCount] = useState(0);
-  const [results, setResults] = useState<
-    { value: string; count: number }[] | null
-  >(null);
+  const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
 
   const { lastEvent } = useSSE(id);
 
@@ -51,13 +48,12 @@ export default function SessionControlPage() {
 
   useEffect(() => {
     if (!lastEvent) return;
-    const event = lastEvent as SSEEvent;
-    switch (event.type) {
+    switch (lastEvent.type) {
       case "vote.received":
-        setVoteCount(event.data.totalVotes);
+        setVoteCount(lastEvent.data.totalVotes);
         break;
       case "results.revealed":
-        setResults(event.data.results);
+        setResults(lastEvent.data.results);
         break;
       case "question.advanced":
         setVoteCount(0);
@@ -79,8 +75,7 @@ export default function SessionControlPage() {
   if (!session) return <div className="p-6">Session not found</div>;
 
   const currentQ = session.questions[session.currentQuestionIndex];
-  const isLastQuestion =
-    session.currentQuestionIndex >= session.questions.length - 1;
+  const isLastQuestion = session.currentQuestionIndex >= session.questions.length - 1;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
   const joinUrl = `${appUrl}/join/${session.code}`;
 
@@ -108,32 +103,19 @@ export default function SessionControlPage() {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           {session.status === "draft" && (
-            <Button onClick={() => doAction("start")}>
-              Open Lobby
-            </Button>
+            <Button onClick={() => doAction("start")}>Open Lobby</Button>
           )}
           {session.status === "lobby" && (
-            <Button onClick={() => doAction("advance")}>
-              Begin First Question
-            </Button>
+            <Button onClick={() => doAction("advance")}>Begin First Question</Button>
           )}
           {session.status === "active" && (
             <>
-              {!results && (
-                <Button onClick={() => doAction("reveal")}>
-                  Reveal Results
-                </Button>
-              )}
+              {!results && <Button onClick={() => doAction("reveal")}>Reveal Results</Button>}
               {results && !isLastQuestion && (
-                <Button onClick={() => doAction("advance")}>
-                  Next Question
-                </Button>
+                <Button onClick={() => doAction("advance")}>Next Question</Button>
               )}
               {results && isLastQuestion && (
-                <Button
-                  variant="destructive"
-                  onClick={() => doAction("finish")}
-                >
+                <Button variant="destructive" onClick={() => doAction("finish")}>
                   End Session
                 </Button>
               )}
@@ -157,14 +139,11 @@ export default function SessionControlPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Q{session.currentQuestionIndex + 1}/{session.questions.length}:{" "}
-              {currentQ.prompt}
+              Q{session.currentQuestionIndex + 1}/{session.questions.length}: {currentQ.prompt}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Votes received: {voteCount}
-            </p>
+            <p className="text-sm text-muted-foreground">Votes received: {voteCount}</p>
             {results && <ResultsChart results={results} />}
           </CardContent>
         </Card>
@@ -187,9 +166,7 @@ export default function SessionControlPage() {
                 }
               >
                 {q.prompt}
-                <span className="text-xs ml-2">
-                  ({(q.options as string[]).join(", ")})
-                </span>
+                <span className="text-xs ml-2">({q.options.join(", ")})</span>
               </li>
             ))}
           </ol>

@@ -22,9 +22,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Set a simple session cookie
-  const token = Buffer.from(`${Date.now()}:${adminPassword}`).toString(
-    "base64"
-  );
+  const token = Buffer.from(`${Date.now()}:${adminPassword}`).toString("base64");
   const response = NextResponse.json({ ok: true });
   response.cookies.set("admin_token", token, {
     httpOnly: true,

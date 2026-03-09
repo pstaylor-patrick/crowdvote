@@ -6,7 +6,6 @@ import { useSSE } from "@/hooks/use-sse";
 import { Button } from "@/components/ui/button";
 import { ResultsChart } from "@/components/shared/results-chart";
 import { motion, AnimatePresence } from "framer-motion";
-import type { SSEEvent } from "@crowdvote/types";
 
 const GITHUB_REPO = "https://github.com/pstaylor-patrick/crowdvote";
 
@@ -24,9 +23,7 @@ export default function PlayPage() {
   const [question, setQuestion] = useState<QuestionState | null>(null);
   const [voted, setVoted] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [results, setResults] = useState<
-    { value: string; count: number }[] | null
-  >(null);
+  const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
 
   const { lastEvent } = useSSE(sessionId);
 
@@ -54,11 +51,10 @@ export default function PlayPage() {
 
   useEffect(() => {
     if (!lastEvent) return;
-    const event = lastEvent as SSEEvent;
-    switch (event.type) {
+    switch (lastEvent.type) {
       case "session.status":
-        setSessionStatus(event.data.status);
-        if (event.data.status === "finished") {
+        setSessionStatus(lastEvent.data.status);
+        if (lastEvent.data.status === "finished") {
           // Redirect to GitHub repo after a brief delay
           setTimeout(() => {
             window.location.href = GITHUB_REPO;
@@ -67,16 +63,16 @@ export default function PlayPage() {
         break;
       case "question.advanced":
         setQuestion({
-          questionId: event.data.questionId,
-          questionIndex: event.data.questionIndex,
-          prompt: event.data.prompt,
-          options: event.data.options,
+          questionId: lastEvent.data.questionId,
+          questionIndex: lastEvent.data.questionIndex,
+          prompt: lastEvent.data.prompt,
+          options: lastEvent.data.options,
         });
         setVoted(null);
         setResults(null);
         break;
       case "results.revealed":
-        setResults(event.data.results);
+        setResults(lastEvent.data.results);
         break;
     }
   }, [lastEvent]);
@@ -112,9 +108,7 @@ export default function PlayPage() {
         >
           <h1 className="text-3xl font-bold">Thanks for playing!</h1>
           <p className="text-muted-foreground">{sessionTitle}</p>
-          <p className="text-sm text-muted-foreground">
-            Redirecting to CrowdVote on GitHub...
-          </p>
+          <p className="text-sm text-muted-foreground">Redirecting to CrowdVote on GitHub...</p>
         </motion.div>
       </div>
     );
@@ -128,9 +122,7 @@ export default function PlayPage() {
           <h1 className="text-2xl font-bold">{sessionTitle || "CrowdVote"}</h1>
           <div className="flex items-center gap-2 justify-center">
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-            <p className="text-muted-foreground">
-              Waiting for host to start...
-            </p>
+            <p className="text-muted-foreground">Waiting for host to start...</p>
           </div>
         </div>
       </div>
@@ -200,9 +192,7 @@ export default function PlayPage() {
                 <span className="text-3xl text-primary">✓</span>
               </div>
               <p className="text-lg font-medium">Voted!</p>
-              <p className="text-sm text-muted-foreground">
-                Waiting for results...
-              </p>
+              <p className="text-sm text-muted-foreground">Waiting for results...</p>
             </motion.div>
           )}
         </motion.div>

@@ -47,17 +47,17 @@ CrowdVote lets a host display a QR code on screen, and anyone in the audience ca
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | [Next.js 15](https://nextjs.org/) (App Router) |
-| Monorepo | [Turborepo](https://turbo.build/) |
-| Database | [Neon Postgres](https://neon.tech/) (serverless) |
-| ORM | [Drizzle](https://orm.drizzle.team/) |
-| Real-time | [Upstash Redis](https://upstash.com/) Streams + Server-Sent Events |
-| UI | [shadcn/ui](https://ui.shadcn.com/) + [Tailwind CSS v4](https://tailwindcss.com/) |
-| Animations | [Framer Motion](https://www.framer.com/motion/) |
-| QR Codes | [qrcode.react](https://github.com/zpao/qrcode.react) (SVG, crisp at any size) |
-| Hosting | [Vercel](https://vercel.com/) |
+| Layer      | Technology                                                                        |
+| ---------- | --------------------------------------------------------------------------------- |
+| Framework  | [Next.js 15](https://nextjs.org/) (App Router)                                    |
+| Monorepo   | [Turborepo](https://turbo.build/)                                                 |
+| Database   | [Neon Postgres](https://neon.tech/) (serverless)                                  |
+| ORM        | [Drizzle](https://orm.drizzle.team/)                                              |
+| Real-time  | [Upstash Redis](https://upstash.com/) Streams + Server-Sent Events                |
+| UI         | [shadcn/ui](https://ui.shadcn.com/) + [Tailwind CSS v4](https://tailwindcss.com/) |
+| Animations | [Framer Motion](https://www.framer.com/motion/)                                   |
+| QR Codes   | [qrcode.react](https://github.com/zpao/qrcode.react) (SVG, crisp at any size)     |
+| Hosting    | [Vercel](https://vercel.com/)                                                     |
 
 ### Why These Choices
 

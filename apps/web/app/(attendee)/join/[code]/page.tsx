@@ -6,9 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>();
   const router = useRouter();
-  const [status, setStatus] = useState<"loading" | "waiting" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"loading" | "waiting" | "error">("loading");
   const [sessionTitle, setSessionTitle] = useState("");
 
   useEffect(() => {
@@ -17,8 +15,7 @@ export default function JoinPage() {
       .then((r) => r.json())
       .then((sessions) => {
         const session = sessions.find(
-          (s: { code: string }) =>
-            s.code.toUpperCase() === code.toUpperCase()
+          (s: { code: string }) => s.code.toUpperCase() === code.toUpperCase()
         );
         if (session) {
           setSessionTitle(session.title);

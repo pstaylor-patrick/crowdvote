@@ -6,7 +6,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { useSSE } from "@/hooks/use-sse";
 import { ResultsChart } from "@/components/shared/results-chart";
 import { motion, AnimatePresence } from "framer-motion";
-import type { SSEEvent } from "@crowdvote/types";
 
 interface Question {
   id: string;
@@ -28,9 +27,7 @@ export default function PresentationPage() {
   const { id } = useParams<{ id: string }>();
   const [session, setSession] = useState<SessionData | null>(null);
   const [voteCount, setVoteCount] = useState(0);
-  const [results, setResults] = useState<
-    { value: string; count: number }[] | null
-  >(null);
+  const [results, setResults] = useState<{ value: string; count: number }[] | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<{
     prompt: string;
     options: string[];
@@ -51,26 +48,25 @@ export default function PresentationPage() {
 
   useEffect(() => {
     if (!lastEvent) return;
-    const event = lastEvent as SSEEvent;
-    switch (event.type) {
+    switch (lastEvent.type) {
       case "session.status":
         fetchSession();
         break;
       case "question.advanced":
         setCurrentQuestion({
-          prompt: event.data.prompt,
-          options: event.data.options,
-          questionId: event.data.questionId,
-          questionIndex: event.data.questionIndex,
+          prompt: lastEvent.data.prompt,
+          options: lastEvent.data.options,
+          questionId: lastEvent.data.questionId,
+          questionIndex: lastEvent.data.questionIndex,
         });
         setVoteCount(0);
         setResults(null);
         break;
       case "vote.received":
-        setVoteCount(event.data.totalVotes);
+        setVoteCount(lastEvent.data.totalVotes);
         break;
       case "results.revealed":
-        setResults(event.data.results);
+        setResults(lastEvent.data.results);
         break;
     }
   }, [lastEvent, fetchSession]);
@@ -99,15 +95,11 @@ export default function PresentationPage() {
 
         <div className="text-center space-y-2">
           <p className="text-2xl font-mono">{joinUrl}</p>
-          <p className="text-4xl font-bold font-mono tracking-widest">
-            {session.code}
-          </p>
+          <p className="text-4xl font-bold font-mono tracking-widest">{session.code}</p>
         </div>
 
         <p className="text-xl text-gray-400">
-          {session.status === "draft"
-            ? "Session not started yet"
-            : "Scan QR code to join!"}
+          {session.status === "draft" ? "Session not started yet" : "Scan QR code to join!"}
         </p>
 
         <div className="absolute top-4 right-4 text-sm text-gray-500">
@@ -151,9 +143,7 @@ export default function PresentationPage() {
             <p className="text-lg text-gray-400">
               Question {currentQuestion.questionIndex + 1} of {totalQuestions}
             </p>
-            <h2 className="text-5xl font-bold leading-tight">
-              {currentQuestion.prompt}
-            </h2>
+            <h2 className="text-5xl font-bold leading-tight">{currentQuestion.prompt}</h2>
             <motion.p
               key={voteCount}
               initial={{ scale: 1.2 }}
@@ -175,9 +165,7 @@ export default function PresentationPage() {
             <p className="text-lg text-gray-400 text-center">
               Question {currentQuestion.questionIndex + 1} of {totalQuestions}
             </p>
-            <h2 className="text-3xl font-bold text-center">
-              {currentQuestion.prompt}
-            </h2>
+            <h2 className="text-3xl font-bold text-center">{currentQuestion.prompt}</h2>
             <ResultsChart results={results} large />
           </motion.div>
         )}

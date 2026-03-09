@@ -1,8 +1,4 @@
-export default function HostLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function HostLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="border-b border-border px-6 py-3">

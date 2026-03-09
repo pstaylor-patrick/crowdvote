@@ -17,17 +17,11 @@ export async function POST(req: NextRequest) {
   const { questionId, value } = body;
 
   if (!questionId || !value) {
-    return NextResponse.json(
-      { error: "questionId and value are required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "questionId and value are required" }, { status: 400 });
   }
 
   // Look up the question to get sessionId
-  const question = await db
-    .select()
-    .from(questions)
-    .where(eq(questions.id, questionId));
+  const question = await db.select().from(questions).where(eq(questions.id, questionId));
 
   if (!question.length) {
     return NextResponse.json({ error: "Question not found" }, { status: 404 });
@@ -45,14 +39,8 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     // Unique constraint violation = already voted
-    if (
-      err instanceof Error &&
-      err.message.includes("unique")
-    ) {
-      return NextResponse.json(
-        { error: "Already voted on this question" },
-        { status: 409 }
-      );
+    if (err instanceof Error && err.message.includes("unique")) {
+      return NextResponse.json({ error: "Already voted on this question" }, { status: 409 });
     }
     throw err;
   }
@@ -65,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   const totalVotes = countResult[0]?.count ?? 0;
 
-  await publishEvent(question[0].sessionId, {
+  await publishEvent(question[0]!.sessionId, {
     type: "vote.received",
     data: { questionId, totalVotes },
   });

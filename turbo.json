@@ -9,8 +9,11 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {
+    "lint": {},
+    "format:check": {},
+    "typecheck": {
       "dependsOn": ["^build"]
-    }
+    },
+    "test": {}
   }
 }

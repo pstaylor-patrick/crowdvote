@@ -68,9 +68,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>Code: {s.code}</span>
                     <span>Type: {s.type}</span>
-                    <span>
-                      {new Date(s.createdAt).toLocaleDateString()}
-                    </span>
+                    <span>{new Date(s.createdAt).toLocaleDateString()}</span>
                   </div>
                 </CardContent>
               </Card>

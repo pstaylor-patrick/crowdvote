@@ -4,10 +4,7 @@ import { db } from "@/lib/db";
 import { sessions } from "@/lib/db/schema";
 import { publishEvent } from "@/lib/sse";
 
-export async function POST(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   await db

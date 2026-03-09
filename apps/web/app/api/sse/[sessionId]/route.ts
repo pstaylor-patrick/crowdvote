@@ -16,7 +16,7 @@ export async function GET(
   let closed = false;
 
   const stream = new ReadableStream({
-    async start(controller) {
+    start(controller) {
       // Dedicated connection for blocking reads
       const reader = new Redis(process.env.REDIS_URL!, {
         maxRetriesPerRequest: 3,
@@ -24,9 +24,7 @@ export async function GET(
 
       const send = (id: string, data: string) => {
         if (closed) return;
-        controller.enqueue(
-          encoder.encode(`id: ${id}\ndata: ${data}\n\n`)
-        );
+        controller.enqueue(encoder.encode(`id: ${id}\ndata: ${data}\n\n`));
       };
 
       // Send heartbeat immediately so client knows connection is alive
@@ -51,21 +49,21 @@ export async function GET(
             if (!results) continue;
 
             for (const [, messages] of results) {
-              for (const [id, fields] of messages as [string, string[]][]) {
+              for (const [id, fields] of messages) {
                 cursor = id;
                 // fields is [key, val, key, val, ...]
                 const obj: Record<string, string> = {};
                 for (let i = 0; i < fields.length; i += 2) {
-                  obj[fields[i]] = fields[i + 1];
+                  obj[fields[i]!] = fields[i + 1]!;
                 }
                 const event = {
-                  type: obj.type,
-                  data: JSON.parse(obj.data),
+                  type: obj["type"],
+                  data: JSON.parse(obj["data"]!),
                 };
                 send(id, JSON.stringify(event));
               }
             }
-          } catch (err) {
+          } catch {
             if (!closed) {
               // Brief pause before retrying
               await new Promise((r) => setTimeout(r, 1000));

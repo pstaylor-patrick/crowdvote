@@ -3,10 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sessions, questions } from "@/lib/db/schema";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const session = await db.select().from(sessions).where(eq(sessions.id, id));
@@ -21,7 +18,7 @@ export async function GET(
     .orderBy(questions.orderIndex);
 
   return NextResponse.json({
-    ...session[0],
+    ...session[0]!,
     questions: sessionQuestions,
   });
 }

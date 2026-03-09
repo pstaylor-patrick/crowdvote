@@ -4,10 +4,7 @@ import { db } from "@/lib/db";
 import { sessions, questions, votes } from "@/lib/db/schema";
 import { publishEvent } from "@/lib/sse";
 
-export async function POST(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const session = await db.select().from(sessions).where(eq(sessions.id, id));
@@ -21,7 +18,7 @@ export async function POST(
     .where(eq(questions.sessionId, id))
     .orderBy(questions.orderIndex);
 
-  const currentQuestion = allQuestions[session[0].currentQuestionIndex ?? 0];
+  const currentQuestion = allQuestions[session[0]!.currentQuestionIndex ?? 0];
   if (!currentQuestion) {
     return NextResponse.json({ error: "No current question" }, { status: 400 });
   }

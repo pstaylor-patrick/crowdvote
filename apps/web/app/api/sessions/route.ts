@@ -8,16 +8,13 @@ function generateCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No ambiguous chars
   let code = "";
   for (let i = 0; i < 5; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+    code += chars[Math.floor(Math.random() * chars.length)]!;
   }
   return code;
 }
 
 export async function GET() {
-  const allSessions = await db
-    .select()
-    .from(sessions)
-    .orderBy(desc(sessions.createdAt));
+  const allSessions = await db.select().from(sessions).orderBy(desc(sessions.createdAt));
   return NextResponse.json(allSessions);
 }
 
@@ -49,9 +46,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const session = await db.select().from(sessions).where(
-    (await import("drizzle-orm")).eq(sessions.id, sessionId)
-  );
+  const session = await db
+    .select()
+    .from(sessions)
+    .where((await import("drizzle-orm")).eq(sessions.id, sessionId));
 
-  return NextResponse.json(session[0], { status: 201 });
+  return NextResponse.json(session[0]!, { status: 201 });
 }

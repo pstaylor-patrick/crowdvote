@@ -33,7 +33,10 @@ export function ResultsChart({ results, large }: ResultsChartProps) {
                 {result.count} vote{result.count !== 1 ? "s" : ""} ({Math.round(pct)}%)
               </span>
             </div>
-            <div className="w-full bg-muted rounded-full overflow-hidden" style={{ height: large ? 32 : 20 }}>
+            <div
+              className="w-full bg-muted rounded-full overflow-hidden"
+              style={{ height: large ? 32 : 20 }}
+            >
               <motion.div
                 className={`h-full rounded-full ${isWinner ? "bg-primary" : "bg-primary/60"}`}
                 initial={{ width: 0 }}
